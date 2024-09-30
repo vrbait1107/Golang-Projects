@@ -30,23 +30,13 @@ func CreateUser(c *fiber.Ctx) error {
 	var user models.User
 
 	if err := c.BodyParser(&user); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status": false,
-			"error": fiber.Map{
-				"statusCode": fiber.StatusBadRequest,
-				"message":    err.Error(),
-			},
-		})
+		return utils.SendErrorResponse(c, fiber.StatusBadRequest, "Invalid input data")
 	}
 
 	database.Database.Db.Create(&user)
 	responeUser := CreateResponseUser(user)
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":     true,
-		"statusCode": fiber.StatusOK,
-		"data":       responeUser,
-	})
+	return utils.SendSuccessResponse(c, fiber.StatusOK, responeUser)
 
 }
 
@@ -71,13 +61,7 @@ func GetUser(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status": false,
-			"error": fiber.Map{
-				"statusCode": fiber.StatusBadRequest,
-				"message":    "Bad Request",
-			},
-		})
+		return utils.SendErrorResponse(c, fiber.StatusBadRequest, "Invalid ID parameter")
 	}
 
 	var user models.User
@@ -86,19 +70,15 @@ func GetUser(c *fiber.Ctx) error {
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return utils.SendErrorResponse(c, fiber.StatusNotFound, "Product Not Found")
+			return utils.SendErrorResponse(c, fiber.StatusNotFound, "User not found")
 		}
 
-		return utils.SendErrorResponse(c, fiber.StatusNotFound, "Internal Server Error")
+		return utils.SendErrorResponse(c, fiber.StatusInternalServerError, "Internal server error")
 	}
 
 	responseUser := CreateResponseUser(user)
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":     true,
-		"statusCode": fiber.StatusOK,
-		"data":       responseUser,
-	})
+	return utils.SendSuccessResponse(c, fiber.StatusOK, responseUser)
 }
 
 func UpdateUsers(c *fiber.Ctx) error {
@@ -106,13 +86,7 @@ func UpdateUsers(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status": false,
-			"error": fiber.Map{
-				"statusCode": fiber.StatusBadRequest,
-				"message":    "Bad Request",
-			},
-		})
+		return utils.SendErrorResponse(c, fiber.StatusBadRequest, "Invalid ID parameter")
 	}
 
 	var user models.User
@@ -121,34 +95,16 @@ func UpdateUsers(c *fiber.Ctx) error {
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"status": false,
-				"error": fiber.Map{
-					"statusCode": fiber.StatusNotFound,
-					"message":    "User Not Found",
-				},
-			})
+			return utils.SendErrorResponse(c, fiber.StatusNotFound, "User not found")
 		}
 
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status": false,
-			"error": fiber.Map{
-				"statusCode": fiber.StatusInternalServerError,
-				"message":    "Internal Server Error",
-			},
-		})
+		return utils.SendErrorResponse(c, fiber.StatusInternalServerError, "Internal server error")
 	}
 
 	var updateData UpdateUser
 
 	if err := c.BodyParser(&updateData); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status": false,
-			"error": fiber.Map{
-				"statusCode": fiber.StatusBadRequest,
-				"message":    err.Error(),
-			},
-		})
+		return utils.SendErrorResponse(c, fiber.StatusBadRequest, "Invalid input data")
 	}
 
 	user.FirstName = updateData.FirstName
@@ -157,13 +113,7 @@ func UpdateUsers(c *fiber.Ctx) error {
 	updateResponse := database.Database.Db.Save(&user)
 
 	if updateResponse.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status": false,
-			"error": fiber.Map{
-				"statusCode": fiber.StatusInternalServerError,
-				"message":    "Internal Server Error",
-			},
-		})
+		return utils.SendErrorResponse(c, fiber.StatusInternalServerError, "Internal server error")
 	}
 
 	responseUser := CreateResponseUser(user)
