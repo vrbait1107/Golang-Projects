@@ -37,7 +37,10 @@ func SetupRoutes(app *fiber.App) {
 
 	/* Order Routes */
 
+	app.Get("api/get-orders", routes.GetOrders)
+	app.Get("api/get-order/:id", routes.GetOrder)
 	app.Post("api/create-order", routes.CreateOrder)
+	app.Delete("api/delete-order/:id", routes.DeleteOrder)
 
 	app.Use(func(c *fiber.Ctx) error {
 		return utils.SendErrorResponse(c, fiber.StatusNotFound, "Route not found")
